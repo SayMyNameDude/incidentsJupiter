@@ -1,0 +1,64 @@
+import pandas as pd
+import numpy as np
+from pprint import pprint
+import glob
+import codecs
+import json
+import seaborn as sns
+import matplotlib.pyplot as plt
+pd.set_option('display.max_columns', None)
+
+1.1 Парсинг данных
+
+#чтение каждого файла
+read_files = glob.glob("C:\data/*.geojson")
+output_list = []
+
+
+for f in read_files:
+    with open(f, "rb") as infile:
+        output_list.append(json.load(infile))
+
+with open("merged_file.json", "w") as outfile:
+    json.dump(output_list, outfile)
+
+#Объединение файлов
+with codecs.open('merged_file.json', 'r', 'utf-8') as json_file:  
+    data = json.load(json_file)
+    
+df = pd.json_normalize(data, errors='ignore')
+df
+
+
+
+#Нормализация данных
+df = pd.json_normalize(data, record_path=['features', 'properties', 'vehicles', 'participants'], meta = [
+    ['features', 'properties','id'],
+    ['features', 'properties', 'tags'],
+    ['features', 'properties', 'light'],
+    ['features', 'properties', 'point'], #2 cols
+    ['features', 'properties', 'nearby'],
+    ['features', 'properties', 'region'],
+    ['features', 'properties', 'address'],
+    ['features', 'properties', 'weather'],
+    ['features', 'properties', 'category'],
+    ['features', 'properties', 'datetime'],
+    ['features', 'properties', 'severity'],
+    ['features', 'properties', 'vehicles', 'year'],
+    ['features', 'properties', 'vehicles', 'brand'],
+    ['features', 'properties', 'vehicles', 'color'],
+    ['features', 'properties', 'vehicles', 'model'],
+    ['features', 'properties', 'vehicles', 'category'],
+    ['features', 'properties','dead_count'],
+    ['features', 'properties','participants'],
+    ['features', 'properties','injured_count'],
+    ['features', 'properties','parent_region'],
+    ['features', 'properties','road_conditions'],
+    ['features', 'properties','participants_count'],
+    ['features', 'properties','participant_categories'],
+], errors='ignore')
+
+df = pd.concat([df.drop('features.properties.point', axis=1), pd.DataFrame(df['features.properties.point'].tolist())], axis=1)
+df
+
+
